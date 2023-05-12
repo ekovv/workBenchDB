@@ -25,13 +25,13 @@ public class Controller {
     private Map<String, String> db;
 
     @Autowired
-    private DAOFunc employeeService;
+    private DAOFunc logic;
 
 
     @GetMapping("/Table")
     public ModelAndView showHomePage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
-        String nameTables = employeeService.getAllNameTables(db.get("adr"), db.get("user"), db.get("pass"));
+        String nameTables = logic.getAllNameTables(db.get("adr"), db.get("user"), db.get("pass"));
         model.addAttribute("nameTables", nameTables);
         return new ModelAndView("Table");
     }
@@ -95,7 +95,7 @@ public class Controller {
             query = content;
         }
 
-        RowsAndCols rowsAndCols = employeeService.query(query, db.get("adr"), db.get("user"), db.get("pass"));
+        RowsAndCols rowsAndCols = logic.query(query, db.get("adr"), db.get("user"), db.get("pass"));
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");
