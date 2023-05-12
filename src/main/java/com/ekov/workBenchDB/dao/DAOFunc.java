@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -14,15 +15,14 @@ import java.util.*;
 @Repository
 public class DAOFunc {
 
-    private Connection connection;
-
+    private static Connection connection;
 
     @Autowired
     private EntityManager entityManager;
 
 
-    public String getAllNameTables(String adr, String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
-        setConnIfNull(adr, username, password);
+    public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
+        setConnIfNull(adr, user, pass);
         Statement a1 = connection.createStatement();
         ResultSet rs = null;
         if (adr.contains("mysql")) {
@@ -40,33 +40,47 @@ public class DAOFunc {
         return resStr;
     }
 
+    public static void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
+        PreparedStatement statement = connection.prepareStatement("INSERT my_db.polz(username, password) VALUES (?,?)");
+        statement.setString(1, username);
+        statement.setString(2, password);
+        statement.executeUpdate();
+    }
 
-    public void setConnIfNull(String adr, String username, String password) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        if (connection == null) {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(adr, username, password);
-            System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
-            System.out.println("URL = " + adr);
-            System.out.println("username = " +username);
-            System.out.println("password = " +password);
-
+    public static boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
+        PreparedStatement statement = connection.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
+        statement.setString(2, username);
+        statement.setString(1, password);
+        ResultSet  resultSet = statement.executeQuery();
+        int count = 0;
+        if (resultSet.next()) {
+            count += 1;
+        }
+        if (count == 1) {
+            System.out.println("Уже зареган");
+            return true;
+        }
+        else {
+            registration(username, password);
+            return false;
         }
     }
 
-//    public static String readFile(String path) throws IOException {
-//        BufferedReader reader = new BufferedReader(new FileReader(new File(path)));
-//        return reader.lines().collect(Collectors.joining(System.lineSeparator()));
-//    }
+    public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        if (connection == null) {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection(adr, user, pass);
+            System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
+            System.out.println("URL = " + adr);
+            System.out.println("username = " +user);
+            System.out.println("password = " +pass);
+        }
+    }
 
-
-
-
-
-
-
-
-    public RowsAndCols query(String query, String adr, String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
-        setConnIfNull(adr, username, password);
+    public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
+        setConnIfNull(adr, user, pass);
         Statement statement = connection.createStatement();
         ResultSet result = statement.executeQuery(query);
 
@@ -107,22 +121,6 @@ public class DAOFunc {
 
 
 
-//        Connection connection = getConnection();
-//        PreparedStatement callableStatement =
-//                connection.prepareCall("{call calculateStatistics(?, ?)}");
-//        Statement statement = connection.createStatement();
-//        String query = "SELECT * FROM my_db.employees";
-//        ResultSet result = statement.executeQuery(query);
-//        ResultSetMetaData rsmd = result.getMetaData();
-//        List<String> columnNames = new ArrayList<String>();
-//        int ColumnCount = rsmd.getColumnCount();
-//        for (int i = 1; i < ColumnCount + 1; i++) {
-//            columnNames.add(rsmd.getColumnName(i));
-//        }
-//        return columnNames;
-//    }
-
-
     @Override
     public String toString() {
         return "EmployeeDAOImpl{" +
@@ -143,31 +141,3 @@ public class DAOFunc {
         return Objects.hash(entityManager);
     }
 }
-
-
-
-
-//        ResultSetMetaData rsmd = result.getMetaData();
-
-//        while (result.next()) {
-//            int id = result.getInt(1);
-//            String name = result.getString(2);
-//            String surname = result.getString(3);
-//            String department = result.getString(4);
-//            int salary = result.getInt(5);
-//            System.out.printf("%d %s %s %s %d \n", id, name,surname,department,salary);
-//        }
-//        List<String> myTable= new ArrayList<String>();
-//       for (int i = 0; i < rowCount; i++) {
-//           myTable.add(result.getString(i));
-//       }
-//        System.out.println(myTable);
-
-//        for(int i=0; i < rsmd.getColumnCount();i++) {
-//            int id = result.getInt(1);
-//            String name = result.getString(2);
-//            String surname = result.getString(3);
-//            String department = result.getString(4);
-//            int salary = result.getInt(5);
-//            System.out.printf("%d %s %s %s %d \n", id, name,surname,department,salary);
-//        }

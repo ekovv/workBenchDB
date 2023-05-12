@@ -17,12 +17,12 @@
 
 
 
-<div class="container-sm">
+<div style="background: linear-gradient(90deg, #faf0cd, #fab397);; width: 100%">
     <div th:if="${!isStored}">
         <form action="/api/home" method="post">
             <input id="adr" name="adr" placeholder="adr">
-            <input id="username" name="username" placeholder="user">
-            <input id="password" name="password" placeholder="password">
+            <input id="user" name="user" placeholder="user">
+            <input id="pass" name="pass" placeholder="password">
             <button type="submit" class="btn btn-primary">Connect</button>
             <br>
         </form>
@@ -43,16 +43,16 @@
     <form action="/api/allTables" method="post">
 
             <a style="text-decoration: none" href="/api/Table">
-                <button type="button" style="margin-right: auto;margin-left: auto;margin-top: 30px ;font-size: 40px;display: block; padding: 20px 20px; border-radius: 30px;" class="btn btn-outline-danger">SHOW TABLES</button>
+                <button type="button" style="margin-right: auto;margin-left: auto;font-size: 20px;display: block; border-radius: 50px; color: white" class="btn btn-outline-light">SHOW TABLES</button>
             </a>
             <input style="padding-bottom: 200px; width: 100%; display: flex; text-align: justify; margin-top: 200px" type="text" name="query" placeholder="Please write your sql request">
             <button type="submit" class="btn btn-primary">Execute</button>
 
     </form>
-        <div class="mb-3">
+        <div style="display: flex" class="mb-3">
             <form action="/api/allTables" method="post" enctype="multipart/form-data">
-                <input name="file" class="form-control" type="file">
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <input name="file" style="margin-bottom: 0" class="form-control" type="file">
+                <button type="submit"  class="btn btn-primary">Submit</button>
             </form>
         </div>
     </div>

@@ -31,13 +31,13 @@ public class Controller {
     @GetMapping("/Table")
     public ModelAndView showHomePage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
-        String nameTables = employeeService.getAllNameTables(db.get("adr"), db.get("username"), db.get("password"));
+        String nameTables = employeeService.getAllNameTables(db.get("adr"), db.get("user"), db.get("pass"));
         model.addAttribute("nameTables", nameTables);
         return new ModelAndView("Table");
     }
 
     @GetMapping("/home")
-    public ModelAndView showHomePageGet(String adr, String username, String password, Boolean isStored, Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (db == null) {
             isStored = false;
         }
@@ -49,38 +49,38 @@ public class Controller {
     }
 
     @PostMapping("/home")
-    public ModelAndView showHomePagePost(@RequestBody String query, String adr, String username, String password, Boolean isStored, Model model, MultipartFile file) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHomePagePost(@RequestBody String query, String adr, String user, String pass, Boolean isStored, Model model, MultipartFile file) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         isStored = false;
         if (db == null) {
             db = new HashMap<>();
             db.put("adr", adr);
-            db.put("username", username);
-            db.put("password", password);
+            db.put("user", user);
+            db.put("pass", pass);
         }
         else {
             isStored = true;
             adr = db.get(adr);
-            username = db.get(username);
-            password = db.get(password);
+            user = db.get(user);
+            pass = db.get(pass);
         }
-        return new ModelAndView("redirect:/api/home?query=" + query + "&adr=" + adr + "&username=" + username + "&password=" + password + "&isStored=" + isStored + "&file=" + file);
+        return new ModelAndView("redirect:/api/home?query=" + query + "&adr=" + adr + "&user=" + user + "&pass=" + pass + "&isStored=" + isStored + "&file=" + file);
     }
 
-//    @PostMapping("/home")
-//    public Connection showMainPagePost(@RequestBody String adr, String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-//        return EmployeeDAOImpl.getConnection(adr, username, password);
-//    }
 
-//    public ModelAndView uploadFile(@RequestParam("file") MultipartFile file, Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
-//        RowsAndCols rowsAndCols = employeeService.query(employeeService.getQueryFromFile(file), db.get("adr"), db.get("username"), db.get("password"),  file);
-//        model.addAttribute("rows", rowsAndCols.getRows());
-//        model.addAttribute("column", rowsAndCols.getCols());
-//        return new ModelAndView("showTable");
-//    }
+    @PostMapping("/register")
+    public ModelAndView registerPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (DAOFunc.login(username, password)) {
+            return new ModelAndView("redirect:/api/register");
+        }
+        return new ModelAndView("redirect:/api/home?username=" + username + "&password=" + password);
+    }
 
 
 
-
+    @GetMapping("/register")
+    public ModelAndView showRegisterPage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return new ModelAndView("register");
+    }
 
     @PostMapping("/allTables")
     public ModelAndView allTables(Model model, String query, MultipartFile file) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
@@ -90,25 +90,16 @@ public class Controller {
             byte[] bdata = FileCopyUtils.copyToByteArray(inputStream);
             content = new String(bdata, StandardCharsets.UTF_8);
         }
+
         if (content != null) {
             query = content;
         }
 
-        RowsAndCols rowsAndCols = employeeService.query(query, db.get("adr"), db.get("username"), db.get("password"));
+        RowsAndCols rowsAndCols = employeeService.query(query, db.get("adr"), db.get("user"), db.get("pass"));
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
-
-
-
-
-
         return new ModelAndView("showTable");
     }
-
-
-
-
-
 
 }
 
@@ -116,7 +107,7 @@ public class Controller {
 
 
 
-//
+
 //url = jdbc:mysql://localhost/my_db?characterEncoding=utf8
 //        username = bestuser
 //        password = bestuser
