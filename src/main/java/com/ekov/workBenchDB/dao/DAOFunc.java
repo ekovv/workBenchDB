@@ -4,8 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
-
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
@@ -62,10 +60,7 @@ public class DAOFunc {
             System.out.println("Уже зареган");
             return true;
         }
-        else {
-            registration(username, password);
-            return false;
-        }
+        return false;
     }
 
     public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

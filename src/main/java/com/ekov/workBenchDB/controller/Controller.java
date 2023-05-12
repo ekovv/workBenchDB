@@ -9,7 +9,6 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -30,11 +29,12 @@ public class Controller {
 
     @GetMapping("/Table")
     public ModelAndView showHomePage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-
         String nameTables = logic.getAllNameTables(db.get("adr"), db.get("user"), db.get("pass"));
         model.addAttribute("nameTables", nameTables);
         return new ModelAndView("Table");
     }
+
+
 
     @GetMapping("/home")
     public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
@@ -67,20 +67,34 @@ public class Controller {
     }
 
 
-    @PostMapping("/register")
-    public ModelAndView registerPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        if (DAOFunc.login(username, password)) {
-            return new ModelAndView("redirect:/api/home");
-        }
+
+    @GetMapping("/registration")
+    public ModelAndView showRegistrationPage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return new ModelAndView("registration");
+    }
+
+    @PostMapping("/registration")
+    public ModelAndView registrationPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        DAOFunc.registration(username, password);
         return new ModelAndView("redirect:/api/home?username=" + username + "&password=" + password);
     }
 
 
 
-    @GetMapping("/register")
-    public ModelAndView showRegisterPage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        return new ModelAndView("register");
+    @PostMapping("/login")
+    public ModelAndView loginPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (DAOFunc.login(username, password)) {
+            return new ModelAndView("redirect:/api/home");
+        }
+        return new ModelAndView("redirect:/api/login");
     }
+
+    @GetMapping("/login")
+    public ModelAndView showloginPage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return new ModelAndView("login");
+    }
+
+
 
     @PostMapping("/allTables")
     public ModelAndView allTables(Model model, String query, MultipartFile file) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
@@ -100,18 +114,4 @@ public class Controller {
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");
     }
-
 }
-
-
-
-
-
-
-//url = jdbc:mysql://localhost/my_db?characterEncoding=utf8
-//        username = bestuser
-//        password = bestuser
-//
-//        urlP = jdbc:postgresql://localhost:5432/postgres
-//        usernameP=bestuser
-//        passwordP=bestuser
