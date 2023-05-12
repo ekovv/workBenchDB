@@ -70,7 +70,7 @@ public class Controller {
     @PostMapping("/register")
     public ModelAndView registerPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         if (DAOFunc.login(username, password)) {
-            return new ModelAndView("redirect:/api/register");
+            return new ModelAndView("redirect:/api/home");
         }
         return new ModelAndView("redirect:/api/home?username=" + username + "&password=" + password);
     }
