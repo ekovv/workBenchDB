@@ -3,6 +3,8 @@ package com.ekov.workBenchDB.controller;
 import com.ekov.workBenchDB.dao.RowsAndCols;
 import com.ekov.workBenchDB.dao.DAOFunc;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
@@ -14,7 +16,9 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @org.springframework.stereotype.Controller
@@ -25,6 +29,8 @@ public class Controller {
 
     @Autowired
     private DAOFunc logic;
+    @Autowired
+    private HttpServletRequest request;
 
 
     @GetMapping("/Table")
@@ -83,6 +89,14 @@ public class Controller {
 
     @PostMapping("/login")
     public ModelAndView loginPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        HttpSession session = request.getSession();
+        session.setAttribute("ggg", username);
+        session.setAttribute("ddd", password);
+        String ame1 = (String) session.getAttribute("ggg");
+        String ame2 = (String) session.getAttribute("ddd");
+        System.out.println(ame1);
+        System.out.println(ame2);
+
         if (DAOFunc.login(username, password)) {
             return new ModelAndView("redirect:/api/home");
         }
@@ -114,4 +128,6 @@ public class Controller {
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");
     }
+
+
 }
