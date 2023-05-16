@@ -2,8 +2,13 @@ package com.ekov.workBenchDB.dao;
 
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
@@ -17,6 +22,9 @@ public class DAOFunc {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private HttpServletRequest request;
 
 
     public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
@@ -46,12 +54,20 @@ public class DAOFunc {
         statement.executeUpdate();
     }
 
-    public static boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        String user = null;
+        String pass = null;
+        HttpSession session = request.getSession();
+        session.setAttribute("username", username);
+        session.setAttribute("password", password);
+        user = (String) session.getAttribute("username");
+        pass = (String) session.getAttribute("password");
+
         connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
         PreparedStatement statement = connection.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
-        statement.setString(2, username);
-        statement.setString(1, password);
-        ResultSet  resultSet = statement.executeQuery();
+        statement.setString(2, user);
+        statement.setString(1, pass);
+        ResultSet resultSet = statement.executeQuery();
         int count = 0;
         if (resultSet.next()) {
             count += 1;
@@ -61,6 +77,36 @@ public class DAOFunc {
             return true;
         }
         return false;
+    }
+
+    public boolean newLogg(List<String> userAndPassNEW) throws SQLException {
+        String user = null;
+        String pass = null;
+        if (userAndPassNEW.size() == 2) {
+            user = userAndPassNEW.get(0);
+            pass = userAndPassNEW.get(1);
+        }
+        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
+        return true;
+    }
+
+    public List<String> logoutAndSave(String save, HttpSession session) throws SQLException {
+        List<String> userAndPassNEW = new ArrayList<>();
+        if (save.equals("Yes")) {
+            String userNew = (String) session.getAttribute("username");
+            String passNew = (String) session.getAttribute("password");
+            userAndPassNEW.add(userNew);
+            userAndPassNEW.add(passNew);
+        }
+        if (save.equals("NO")) {
+            session.removeAttribute("username");
+            session.removeAttribute("password");
+        }
+        session.invalidate();
+        return userAndPassNEW.isEmpty() ? null : userAndPassNEW;
+    }
+
+    public void logoutAndDelete(String YES, HttpSession session) {
     }
 
     public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

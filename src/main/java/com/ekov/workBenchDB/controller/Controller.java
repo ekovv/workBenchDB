@@ -2,8 +2,11 @@ package com.ekov.workBenchDB.controller;
 
 import com.ekov.workBenchDB.dao.RowsAndCols;
 import com.ekov.workBenchDB.dao.DAOFunc;
+import com.fasterxml.uuid.Generators;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
@@ -16,22 +19,17 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @org.springframework.stereotype.Controller
 @RequestMapping("/api")
 public class Controller {
 
+
     private Map<String, String> db;
 
     @Autowired
     private DAOFunc logic;
-    @Autowired
-    private HttpServletRequest request;
-
 
     @GetMapping("/Table")
     public ModelAndView showHomePage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
@@ -43,7 +41,11 @@ public class Controller {
 
 
     @GetMapping("/home")
-    public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model,  HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        String uuid = getUUID(request);
+        if (request.getCookies() == null) {
+            return new ModelAndView("redirect:/api/login");
+        }
         if (db == null) {
             isStored = false;
         }
@@ -56,6 +58,7 @@ public class Controller {
 
     @PostMapping("/home")
     public ModelAndView showHomePagePost(@RequestBody String query, String adr, String user, String pass, Boolean isStored, Model model, MultipartFile file) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+
         isStored = false;
         if (db == null) {
             db = new HashMap<>();
@@ -86,25 +89,94 @@ public class Controller {
     }
 
 
+    public String getUUID(HttpServletRequest request) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if (cookie.getName().equals("id")) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
+
+
+
+
+
+
+
+//    if (cook == null) {
+//        redirect
+//    }
 
     @PostMapping("/login")
-    public ModelAndView loginPost(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        HttpSession session = request.getSession();
-        session.setAttribute("ggg", username);
-        session.setAttribute("ddd", password);
-        String ame1 = (String) session.getAttribute("ggg");
-        String ame2 = (String) session.getAttribute("ddd");
-        System.out.println(ame1);
-        System.out.println(ame2);
+    public ModelAndView loginPost(String username, String password, HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        //где взять реквест
+        String cook = null;
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("id")) {
+                    if (logic.login(username, password)) {
+                        return new ModelAndView("redirect:/api/home");
+                    }
+                    cook = cookie.getValue();
+                }
+            }
+        }
+        if (cook == null) {
+            UUID uuid = Generators.timeBasedGenerator().generate();
+            final String cookieName = "id";
+            final String cookieValue = uuid.toString();  // you could assign it some encoded value
+            final Boolean useSecureCookie = false;
+            final int expiryTime = 60 * 60 * 24;  // 24h in seconds
+            final String cookiePath = "/";
 
-        if (DAOFunc.login(username, password)) {
+            Cookie cookie = new Cookie(cookieName, cookieValue);
+
+            cookie.setSecure(useSecureCookie);  // determines whether the cookie should only be sent using a secure protocol, such as HTTPS or SSL
+
+            cookie.setMaxAge(expiryTime);  // A negative value means that the cookie is not stored persistently and will be deleted when the Web browser exits. A zero value causes the cookie to be deleted.
+
+            cookie.setPath(cookiePath);  // The cookie is visible to all the pages in the directory you specify, and all the pages in that directory's subdirectories
+
+            response.addCookie(cookie);
+        }
+        System.out.println(cook);
+        if (logic.login(username, password)) {
             return new ModelAndView("redirect:/api/home");
         }
         return new ModelAndView("redirect:/api/login");
     }
 
+
+
+    @GetMapping("/loginIfSave")
+    public ModelAndView showLoginIfSave() {
+        return new ModelAndView("loginIfSave");
+    }
+    @PostMapping("/loginIfSave")
+    public ModelAndView loginPost(String save, HttpSession session) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        logic.newLogg(logic.logoutAndSave(save, session));
+        return new ModelAndView("redirect:/api/home");
+    }
+
+    @PostMapping("/logout")
+    public ModelAndView logout(String save, HttpSession session) throws SQLException {
+        logic.logoutAndSave(save, session);
+        return new ModelAndView("redirect:/api/logout?YES=" + save);
+    }
+
+    @GetMapping("/logout")
+    public ModelAndView showLogout() {
+        return new ModelAndView("logout");
+    }
+
     @GetMapping("/login")
     public ModelAndView showloginPage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+//        model.addAttribute("isBack", isBack);
         return new ModelAndView("login");
     }
 
