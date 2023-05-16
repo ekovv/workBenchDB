@@ -56,7 +56,6 @@ public class Controller {
         return new ModelAndView("home");
     }
 
-
     @PostMapping("/home")
     public ModelAndView showHomePagePost(@RequestBody String query, String adr, String user, String pass, Boolean isStored, Model model, MultipartFile file) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 

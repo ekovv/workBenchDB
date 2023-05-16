@@ -54,7 +54,6 @@ public class DAOFunc {
         statement.executeUpdate();
     }
 
-
     public boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String user = null;
         String pass = null;
