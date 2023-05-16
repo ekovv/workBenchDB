@@ -79,35 +79,6 @@ public class DAOFunc {
         return false;
     }
 
-    public boolean newLogg(List<String> userAndPassNEW) throws SQLException {
-        String user = null;
-        String pass = null;
-        if (userAndPassNEW.size() == 2) {
-            user = userAndPassNEW.get(0);
-            pass = userAndPassNEW.get(1);
-        }
-        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
-        return true;
-    }
-
-    public List<String> logoutAndSave(String save, HttpSession session) throws SQLException {
-        List<String> userAndPassNEW = new ArrayList<>();
-        if (save.equals("Yes")) {
-            String userNew = (String) session.getAttribute("username");
-            String passNew = (String) session.getAttribute("password");
-            userAndPassNEW.add(userNew);
-            userAndPassNEW.add(passNew);
-        }
-        if (save.equals("NO")) {
-            session.removeAttribute("username");
-            session.removeAttribute("password");
-        }
-        session.invalidate();
-        return userAndPassNEW.isEmpty() ? null : userAndPassNEW;
-    }
-
-    public void logoutAndDelete(String YES, HttpSession session) {
-    }
 
     public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (connection == null) {

@@ -101,20 +101,9 @@ public class Controller {
 
         return null;
     }
-
-
-
-
-
-
-
-//    if (cook == null) {
-//        redirect
-//    }
-
     @PostMapping("/login")
     public ModelAndView loginPost(String username, String password, HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        //где взять реквест
+
         String cook = null;
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
@@ -129,18 +118,18 @@ public class Controller {
         if (cook == null) {
             UUID uuid = Generators.timeBasedGenerator().generate();
             final String cookieName = "id";
-            final String cookieValue = uuid.toString();  // you could assign it some encoded value
+            final String cookieValue = uuid.toString();
             final Boolean useSecureCookie = false;
-            final int expiryTime = 60 * 60 * 24;  // 24h in seconds
+            final int expiryTime = 60 * 60 * 24;
             final String cookiePath = "/";
 
             Cookie cookie = new Cookie(cookieName, cookieValue);
 
-            cookie.setSecure(useSecureCookie);  // determines whether the cookie should only be sent using a secure protocol, such as HTTPS or SSL
+            cookie.setSecure(useSecureCookie);
 
-            cookie.setMaxAge(expiryTime);  // A negative value means that the cookie is not stored persistently and will be deleted when the Web browser exits. A zero value causes the cookie to be deleted.
+            cookie.setMaxAge(expiryTime);
 
-            cookie.setPath(cookiePath);  // The cookie is visible to all the pages in the directory you specify, and all the pages in that directory's subdirectories
+            cookie.setPath(cookiePath);
 
             response.addCookie(cookie);
         }
@@ -153,21 +142,6 @@ public class Controller {
 
 
 
-    @GetMapping("/loginIfSave")
-    public ModelAndView showLoginIfSave() {
-        return new ModelAndView("loginIfSave");
-    }
-    @PostMapping("/loginIfSave")
-    public ModelAndView loginPost(String save, HttpSession session) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        logic.newLogg(logic.logoutAndSave(save, session));
-        return new ModelAndView("redirect:/api/home");
-    }
-
-    @PostMapping("/logout")
-    public ModelAndView logout(String save, HttpSession session) throws SQLException {
-        logic.logoutAndSave(save, session);
-        return new ModelAndView("redirect:/api/logout?YES=" + save);
-    }
 
     @GetMapping("/logout")
     public ModelAndView showLogout() {
@@ -176,7 +150,6 @@ public class Controller {
 
     @GetMapping("/login")
     public ModelAndView showloginPage(Model model) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-//        model.addAttribute("isBack", isBack);
         return new ModelAndView("login");
     }
 
