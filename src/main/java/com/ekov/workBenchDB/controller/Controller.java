@@ -42,6 +42,7 @@ public class Controller {
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
+
         Credential credential = db.get(uuid);
         String adr = credential.getAdr();
         String user = credential.getUsername();

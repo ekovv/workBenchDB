@@ -26,6 +26,7 @@ public class DAOFunc {
     @Autowired
     private HttpServletRequest request;
 
+    //сделать кнопку для смены базы
 
     public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
         setConnIfNull(adr, user, pass);
