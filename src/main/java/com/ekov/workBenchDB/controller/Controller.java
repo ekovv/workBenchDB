@@ -9,9 +9,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import java.io.IOException;
@@ -26,7 +30,8 @@ import java.util.*;
 public class Controller {
 
 
-    private Map<String, String> db;
+    private Map<String, Credential> db;
+
 
     @Autowired
     private DAOFunc logic;
@@ -34,10 +39,14 @@ public class Controller {
     @GetMapping("/Table")
     public ModelAndView showHomePage(Model model, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
-        String nameTables = logic.getAllNameTables(db.get("adr"), db.get("user"), db.get("pass"));
+        Credential credential = db.get(uuid);
+        String adr = credential.getAdr();
+        String user = credential.getUsername();
+        String pass = credential.getPassword();
+        String nameTables = logic.getAllNameTables(adr, user, pass);
         model.addAttribute("nameTables", nameTables);
         return new ModelAndView("Table");
     }
@@ -47,8 +56,9 @@ public class Controller {
     @GetMapping("/home")
     public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model,  HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
+
         }
         if (db == null) {
             isStored = false;
@@ -63,21 +73,22 @@ public class Controller {
     @PostMapping("/home")
     public ModelAndView showHomePagePost(@RequestBody String query, String adr, String user, String pass, Boolean isStored, Model model, MultipartFile file, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
+
         isStored = false;
         if (db == null) {
+            Credential credential = new Credential(adr, user, pass);
             db = new HashMap<>();
-            db.put("adr", adr);
-            db.put("user", user);
-            db.put("pass", pass);
+            db.put(uuid, credential);
         }
         else {
             isStored = true;
-            adr = db.get(adr);
-            user = db.get(user);
-            pass = db.get(pass);
+            Credential credential = db.get(uuid);
+            adr = credential.getAdr();
+            user = credential.getUsername();
+            pass = credential.getPassword();
         }
         return new ModelAndView("redirect:/api/home?query=" + query + "&adr=" + adr + "&user=" + user + "&pass=" + pass + "&isStored=" + isStored + "&file=" + file);
     }
@@ -87,7 +98,7 @@ public class Controller {
     @GetMapping("/registration")
     public ModelAndView showRegistrationPage(Model model, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
         return new ModelAndView("registration");
@@ -96,7 +107,8 @@ public class Controller {
     @PostMapping("/registration")
     public ModelAndView registrationPost(String username, String password, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
+            db.clear();
             return new ModelAndView("redirect:/api/login");
         }
         DAOFunc.registration(username, password);
@@ -105,51 +117,22 @@ public class Controller {
 
 
     public String getUUID(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object uuid = session.getAttribute("uuid");
 
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return null;
         }
-        for (Cookie cookie : request.getCookies()) {
-            if (cookie.getName().equals("id")) {
-                return cookie.getValue();
-            }
-        }
 
-        return null;
+
+        return uuid.toString();
     }
     @PostMapping("/login")
     public ModelAndView loginPost(String username, String password, HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-
-        String cook = null;
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("id")) {
-                    if (logic.login(username, password)) {
-                        return new ModelAndView("redirect:/api/home");
-                    }
-                    cook = cookie.getValue();
-                }
-            }
+        String uuid = getUUID(request);
+        if (uuid == null) {
+            return new ModelAndView("redirect:/api/login");
         }
-        if (cook == null) {
-            UUID uuid = Generators.timeBasedGenerator().generate();
-            final String cookieName = "id";
-            final String cookieValue = uuid.toString();
-            final Boolean useSecureCookie = false;
-            final int expiryTime = 60 * 60 * 24;
-            final String cookiePath = "/";
-
-            Cookie cookie = new Cookie(cookieName, cookieValue);
-
-            cookie.setSecure(useSecureCookie);
-
-            cookie.setMaxAge(expiryTime);
-
-            cookie.setPath(cookiePath);
-
-            response.addCookie(cookie);
-        }
-        System.out.println(cook);
         if (logic.login(username, password)) {
             return new ModelAndView("redirect:/api/home");
         }
@@ -159,20 +142,41 @@ public class Controller {
 
 
 
+    @PostMapping("/logout")
+    public ModelAndView logout(HttpServletRequest request, HttpServletResponse response,String adr,  String username, String password, Boolean isStored) {
+        HttpSession session = request.getSession();
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null)
+            for (Cookie cookie : cookies) {
+                cookie.setValue("");
+                cookie.setPath("/");
+                cookie.setMaxAge(0);
+                response.addCookie(cookie);
+            }
+        db = null;
+        session.removeAttribute("uuid");
+        session.invalidate();
+
+        return new ModelAndView("redirect:/api/logout");
+    }
+
     @GetMapping("/logout")
-    public ModelAndView showLogout(HttpServletRequest request) {
+    public ModelAndView showLogout(HttpServletRequest request, HttpServletResponse response, String adr, String username, String password) {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
+        db.clear();
         return new ModelAndView("logout");
     }
 
     @GetMapping("/login")
     public ModelAndView showloginPage(HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
-            return new ModelAndView("redirect:/api/login");
+        if (uuid == null) {
+            uuid = Generators.timeBasedGenerator().generate().toString();
+            HttpSession session = request.getSession();
+            session.setAttribute("uuid", uuid);
         }
         return new ModelAndView("login");
     }
@@ -182,7 +186,7 @@ public class Controller {
     @PostMapping("/allTables")
     public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
         String uuid = getUUID(request);
-        if (request.getCookies() == null) {
+        if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
         String content = null;
@@ -195,8 +199,11 @@ public class Controller {
         if (content != null) {
             query = content;
         }
-
-        RowsAndCols rowsAndCols = logic.query(query, db.get("adr"), db.get("user"), db.get("pass"));
+        Credential credential = db.get(uuid);
+        String adr = credential.getAdr();
+        String user = credential.getUsername();
+        String pass = credential.getPassword();
+        RowsAndCols rowsAndCols = logic.query(query, adr, user, pass);
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");

@@ -32,9 +32,9 @@ public class DAOFunc {
         Statement a1 = connection.createStatement();
         ResultSet rs = null;
         if (adr.contains("mysql")) {
-            rs = a1.executeQuery("Show tables");
+            rs = a1.executeQuery("show tables");
         }
-        else if(adr.contains("postgres")){
+        if (adr.contains("postgresql")) {
             rs = a1.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
         }
         StringBuilder myTables = new StringBuilder();
@@ -47,7 +47,7 @@ public class DAOFunc {
     }
 
     public static void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         PreparedStatement statement = connection.prepareStatement("INSERT my_db.polz(username, password) VALUES (?,?)");
         statement.setString(1, username);
         statement.setString(2, password);
@@ -55,18 +55,10 @@ public class DAOFunc {
     }
 
     public boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        String user = null;
-        String pass = null;
-        HttpSession session = request.getSession();
-        session.setAttribute("username", username);
-        session.setAttribute("password", password);
-        user = (String) session.getAttribute("username");
-        pass = (String) session.getAttribute("password");
-
-        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "bestuser", "bestuser");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         PreparedStatement statement = connection.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
-        statement.setString(2, user);
-        statement.setString(1, pass);
+        statement.setString(2, username);
+        statement.setString(1, password);
         ResultSet resultSet = statement.executeQuery();
         int count = 0;
         if (resultSet.next()) {
@@ -81,14 +73,18 @@ public class DAOFunc {
 
 
     public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        if (connection == null) {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            if (adr.contains("postegres")) {
+                Class.forName("org.postgresql.Driver");
+            }
+            if (adr.contains("mysql")) {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+            }
             connection = DriverManager.getConnection(adr, user, pass);
             System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
             System.out.println("URL = " + adr);
             System.out.println("username = " +user);
             System.out.println("password = " +pass);
-        }
+
     }
 
     public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)

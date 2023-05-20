@@ -26,6 +26,7 @@
             <button type="submit" class="btn btn-primary">Connect</button>
             <br>
         </form>
+
     </div>
 
     <div th:if="${isStored}">
@@ -45,7 +46,7 @@
             </form>
         </div>
     </div>
-    <form action="/api/logout">
+    <form action="/api/logout" method="post">
         <button style="display:flex; float: right; margin-bottom: auto; margin-left: auto; margin-right: 0   " type="submit" class="btn btn-info">Log out</button>
     </form>
 </div>
