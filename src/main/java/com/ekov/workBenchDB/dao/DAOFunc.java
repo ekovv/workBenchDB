@@ -36,7 +36,10 @@ public class DAOFunc {
             rs = a1.executeQuery("show tables");
         }
         if (adr.contains("postgresql")) {
-            rs = a1.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+            rs = a1.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
+        }
+        if (adr.contains("sqlite")) {
+            rs = a1.executeQuery("SELECT NAME FROM sqlite_master WHERE type = 'table'");
         }
         StringBuilder myTables = new StringBuilder();
         while(rs.next()) {
@@ -74,13 +77,18 @@ public class DAOFunc {
 
 
     public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-            if (adr.contains("postegres")) {
+            if (adr.contains("postgres")) {
                 Class.forName("org.postgresql.Driver");
+                connection = DriverManager.getConnection(adr, user, pass);
             }
             if (adr.contains("mysql")) {
                 Class.forName("com.mysql.cj.jdbc.Driver");
+                connection = DriverManager.getConnection(adr, user, pass);
             }
-            connection = DriverManager.getConnection(adr, user, pass);
+            if (adr.contains("sqlite")) {
+                Class.forName("org.sqlite.JDBC");
+                connection = DriverManager.getConnection(adr);
+            }
             System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
             System.out.println("URL = " + adr);
             System.out.println("username = " +user);
