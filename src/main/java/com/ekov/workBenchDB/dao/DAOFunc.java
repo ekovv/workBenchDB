@@ -12,7 +12,13 @@ import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.Date;
+import java.util.stream.Collectors;
 
 
 @Repository
@@ -96,15 +102,51 @@ public class DAOFunc {
 
     }
 
+    public void saveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        setConnIfNull("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        Date date = new Date();
+        PreparedStatement statement = connection.prepareStatement("INSERT my_db.history(query, username, time) VALUES (?,?,?)");
+        statement.setString(2, username);
+        statement.setString(1, query);
+        statement.setString(3, date.toString());
+        statement.executeUpdate();
+
+    }
+
+    public StringBuilder showHistory() throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        setConnIfNull("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        PreparedStatement statement = connection.prepareStatement("SELECT query, time FROM my_db.history where username = ?");
+        HttpSession session = request.getSession();
+        String userrr = session.getAttribute("username").toString();
+        statement.setString(1, userrr);
+        ResultSet resultSet = statement.executeQuery();
+        StringBuilder result =  new StringBuilder();
+
+        while (resultSet.next()) {
+            result.append(resultSet.getString("query")).append(resultSet.getString("time")).append("\n");
+        }
+
+        return result;
+    }
+
     public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
         setConnIfNull(adr, user, pass);
         Statement statement = connection.createStatement();
-        ResultSet result = statement.executeQuery(query);
+        List<List<String>> rows = new ArrayList<List<String>>();
+        List<String> cols = new ArrayList<String>();
+        if (query.contains("INSERT") || query.contains("DELETE")) {
+            statement.executeUpdate(query);
+        }
+        else if (query.contains("SELECT".toLowerCase())) {
+            statement.executeUpdate(query);
 
-        ResultSetMetaData rsmd = result.getMetaData();
-        int columnCount = rsmd.getColumnCount();
-        List<List<String>> rows = getRows(result, columnCount);
-        List<String> cols = getCols(rsmd, columnCount);
+            ResultSet result = statement.executeQuery(query);
+
+            ResultSetMetaData rsmd = result.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            rows = getRows(result, columnCount);
+            cols = getCols(rsmd, columnCount);
+        }
         return new RowsAndCols(rows, cols);
     }
 

@@ -54,8 +54,22 @@ public class Controller {
 
 
 
+
+    @GetMapping("/history")
+    public ModelAndView showHistoryPage(Model model, HttpServletRequest request, String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        String uuid = getUUID(request);
+        if (uuid == null) {
+            return new ModelAndView("redirect:/api/login");
+        }
+        StringBuilder showHist = logic.showHistory();
+        model.addAttribute("showHist", showHist);
+        return new ModelAndView("history");
+    }
+
+
+
     @GetMapping("/home")
-    public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model,  HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHomePageGet(String adr, String user, String pass, Boolean isStored, Model model,  HttpServletRequest request, String query, String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
@@ -72,7 +86,7 @@ public class Controller {
     }
 
     @PostMapping("/home")
-    public ModelAndView showHomePagePost(@RequestBody String query, String adr, String user, String pass, Boolean isStored, Model model, MultipartFile file, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHomePagePost(String query, String adr, String user, String pass, Boolean isStored, Model model, MultipartFile file, HttpServletRequest request, String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
@@ -91,7 +105,8 @@ public class Controller {
             user = credential.getUsername();
             pass = credential.getPassword();
         }
-        return new ModelAndView("redirect:/api/home?query=" + query + "&adr=" + adr + "&user=" + user + "&pass=" + pass + "&isStored=" + isStored + "&file=" + file);
+
+        return new ModelAndView("redirect:/api/home?query=" + query + "&adr=" + adr + "&user=" + user + "&pass=" + pass + "&isStored=" + isStored + "&file=" + file + "&username=" + username + "&password=" + password);
     }
 
 
@@ -130,6 +145,8 @@ public class Controller {
     }
     @PostMapping("/login")
     public ModelAndView loginPost(String username, String password, HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        HttpSession session = request.getSession();
+        session.setAttribute("username", username);
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
@@ -185,10 +202,13 @@ public class Controller {
 
 
     @PostMapping("/allTables")
-    public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
+    public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
+        }
+        if (query.contains("INSERT") || query.contains("DELETE")) {
+            return new ModelAndView("redirect:/api/home");
         }
         String content = null;
         if (file != null) {
@@ -204,6 +224,9 @@ public class Controller {
         String adr = credential.getAdr();
         String user = credential.getUsername();
         String pass = credential.getPassword();
+        HttpSession session = request.getSession();
+        String userrr = session.getAttribute("username").toString();
+        logic.saveQuery(query, userrr);
         RowsAndCols rowsAndCols = logic.query(query, adr, user, pass);
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
