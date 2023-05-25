@@ -78,6 +78,9 @@ public class Controller {
         if (db == null) {
             isStored = false;
         }
+        else if (!db.containsKey(uuid)) {
+            isStored = false;
+        }
         else {
             isStored = true;
         }
@@ -92,10 +95,15 @@ public class Controller {
             return new ModelAndView("redirect:/api/login");
         }
 
+
         isStored = false;
         if (db == null) {
             Credential credential = new Credential(adr, user, pass);
             db = new HashMap<>();
+            db.put(uuid, credential);
+        }
+        else if (!db.containsKey(uuid)) {
+            Credential credential = new Credential(adr, user, pass);
             db.put(uuid, credential);
         }
         else {
@@ -147,6 +155,7 @@ public class Controller {
     public ModelAndView loginPost(String username, String password, HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         HttpSession session = request.getSession();
         session.setAttribute("username", username);
+//        db = null;
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
@@ -171,8 +180,10 @@ public class Controller {
                 cookie.setMaxAge(0);
                 response.addCookie(cookie);
             }
-        db = null;
+
+        Object uuid = session.getAttribute("uuid");
         session.removeAttribute("uuid");
+        db.remove(uuid);
         session.invalidate();
 
         return new ModelAndView("redirect:/api/logout");
@@ -207,14 +218,14 @@ public class Controller {
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
-        if (query.contains("INSERT") || query.contains("DELETE")) {
-            return new ModelAndView("redirect:/api/home");
-        }
         String content = null;
         if (file != null) {
             InputStream inputStream = file.getInputStream();
             byte[] bdata = FileCopyUtils.copyToByteArray(inputStream);
             content = new String(bdata, StandardCharsets.UTF_8);
+        }
+        if (file == null && (query.contains("INSERT") || query.contains("DELETE"))) {
+            return new ModelAndView("redirect:/api/home");
         }
 
         if (content != null) {

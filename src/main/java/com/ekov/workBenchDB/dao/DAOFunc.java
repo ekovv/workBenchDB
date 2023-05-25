@@ -2,29 +2,22 @@ package com.ekov.workBenchDB.dao;
 
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import javax.swing.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 
 @Repository
 public class DAOFunc {
 
-    private static Connection connection;
+    private static Map<String, Connection> connections;
 
     @Autowired
     private EntityManager entityManager;
@@ -35,8 +28,8 @@ public class DAOFunc {
     //сделать кнопку для смены базы
 
     public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
-        setConnIfNull(adr, user, pass);
-        Statement a1 = connection.createStatement();
+        Connection conn = setConnIfNullAndReturn(adr, user, pass);
+        Statement a1 = conn.createStatement();
         ResultSet rs = null;
         if (adr.contains("mysql")) {
             rs = a1.executeQuery("show tables");
@@ -57,16 +50,16 @@ public class DAOFunc {
     }
 
     public static void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
-        PreparedStatement statement = connection.prepareStatement("INSERT my_db.polz(username, password) VALUES (?,?)");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        PreparedStatement statement = conn.prepareStatement("INSERT my_db.polz(username, password) VALUES (?,?)");
         statement.setString(1, username);
         statement.setString(2, password);
         statement.executeUpdate();
     }
 
     public boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
-        PreparedStatement statement = connection.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        PreparedStatement statement = conn.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
         statement.setString(2, username);
         statement.setString(1, password);
         ResultSet resultSet = statement.executeQuery();
@@ -82,30 +75,37 @@ public class DAOFunc {
     }
 
 
-    public void setConnIfNull(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-            if (adr.contains("postgres")) {
-                Class.forName("org.postgresql.Driver");
-                connection = DriverManager.getConnection(adr, user, pass);
-            }
-            if (adr.contains("mysql")) {
-                Class.forName("com.mysql.cj.jdbc.Driver");
-                connection = DriverManager.getConnection(adr, user, pass);
-            }
-            if (adr.contains("sqlite")) {
-                Class.forName("org.sqlite.JDBC");
-                connection = DriverManager.getConnection(adr);
-            }
+    public Connection setConnIfNullAndReturn(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        if (connections == null) {
+            connections = new HashMap<>();
+        }
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("username");
+        connections.put(username.toString(), DriverManager.getConnection(adr, user, pass));
+//        if (adr.contains("postgres")) {
+//                Class.forName("org.postgresql.Driver");
+//                connections.put(user, DriverManager.getConnection(adr, user, pass));
+//        }
+//        if (adr.contains("mysql")) {
+//                Class.forName("com.mysql.cj.jdbc.Driver");
+//                connections.put(user, DriverManager.getConnection(adr, user, pass));
+//        }
+//        if (adr.contains("sqlite")) {
+//                Class.forName("org.sqlite.JDBC");
+//                connections = DriverManager.getConnection(adr);
+//        }
             System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
             System.out.println("URL = " + adr);
             System.out.println("username = " +user);
             System.out.println("password = " +pass);
 
+        return connections.get(username.toString());
     }
 
     public void saveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        setConnIfNull("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        Connection conn = setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         Date date = new Date();
-        PreparedStatement statement = connection.prepareStatement("INSERT my_db.history(query, username, time) VALUES (?,?,?)");
+        PreparedStatement statement = conn.prepareStatement("INSERT my_db.history(query, username, time) VALUES (?,?,?)");
         statement.setString(2, username);
         statement.setString(1, query);
         statement.setString(3, date.toString());
@@ -114,8 +114,8 @@ public class DAOFunc {
     }
 
     public StringBuilder showHistory() throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        setConnIfNull("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
-        PreparedStatement statement = connection.prepareStatement("SELECT query, time FROM my_db.history where username = ?");
+        Connection conn =  setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        PreparedStatement statement = conn.prepareStatement("SELECT query, time FROM my_db.history where username = ?");
         HttpSession session = request.getSession();
         String userrr = session.getAttribute("username").toString();
         statement.setString(1, userrr);
@@ -130,16 +130,14 @@ public class DAOFunc {
     }
 
     public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
-        setConnIfNull(adr, user, pass);
-        Statement statement = connection.createStatement();
+        Connection conn = setConnIfNullAndReturn(adr, user, pass);
+        Statement statement = conn.createStatement();
         List<List<String>> rows = new ArrayList<List<String>>();
         List<String> cols = new ArrayList<String>();
         if (query.contains("INSERT") || query.contains("DELETE")) {
             statement.executeUpdate(query);
         }
-        else if (query.contains("SELECT".toLowerCase())) {
-            statement.executeUpdate(query);
-
+        else {
             ResultSet result = statement.executeQuery(query);
 
             ResultSetMetaData rsmd = result.getMetaData();
