@@ -1,7 +1,6 @@
 package com.ekov.workBenchDB.dao;
 
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,29 +24,6 @@ public class DAOFunc {
     @Autowired
     private HttpServletRequest request;
 
-    //сделать кнопку для смены базы
-
-//    public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
-//        Connection conn = setConnIfNullAndReturn(adr, user, pass);
-//        Statement a1 = conn.createStatement();
-//        ResultSet rs = null;
-//        if (adr.contains("mysql")) {
-//            rs = a1.executeQuery("show tables");
-//        }
-//        if (adr.contains("postgresql")) {
-//            rs = a1.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
-//        }
-//        if (adr.contains("sqlite")) {
-//            rs = a1.executeQuery("SELECT NAME FROM sqlite_master WHERE type = 'table'");
-//        }
-//        StringBuilder myTables = new StringBuilder();
-//        while(rs.next()) {
-//            myTables.append(rs.getString(1)).append("\n");
-//        }
-//        StringBuilder res = new StringBuilder(myTables);
-//        String resStr = res.toString();
-//        return resStr;
-//    }
 
     public void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
@@ -82,22 +58,10 @@ public class DAOFunc {
         }
 
         connections.put(username.toString(), DriverManager.getConnection(adr, user, pass));
-//        if (adr.contains("postgres")) {
-//                Class.forName("org.postgresql.Driver");
-//                connections.put(user, DriverManager.getConnection(adr, user, pass));
-//        }
-//        if (adr.contains("mysql")) {
-//                Class.forName("com.mysql.cj.jdbc.Driver");
-//                connections.put(user, DriverManager.getConnection(adr, user, pass));
-//        }
-//        if (adr.contains("sqlite")) {
-//                Class.forName("org.sqlite.JDBC");
-//                connections = DriverManager.getConnection(adr);
-//        }
-            System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
-            System.out.println("URL = " + adr);
-            System.out.println("username = " +user);
-            System.out.println("password = " +pass);
+        System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
+        System.out.println("URL = " + adr);
+        System.out.println("username = " +user);
+        System.out.println("password = " +pass);
 
         return connections.get(username.toString());
     }
@@ -129,24 +93,6 @@ public class DAOFunc {
         return result;
     }
 
-//    public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
-//        Connection conn = setConnIfNullAndReturn(adr, user, pass);
-//        Statement statement = conn.createStatement();
-//        List<List<String>> rows = new ArrayList<List<String>>();
-//        List<String> cols = new ArrayList<String>();
-//        if (query.contains("INSERT") || query.contains("DELETE")) {
-//            statement.executeUpdate(query);
-//        }
-//        else {
-//            ResultSet result = statement.executeQuery(query);
-//
-//            ResultSetMetaData rsmd = result.getMetaData();
-//            int columnCount = rsmd.getColumnCount();
-//            rows = getRows(result, columnCount);
-//            cols = getCols(rsmd, columnCount);
-//        }
-//        return new RowsAndCols(rows, cols);
-//    }
 
     public List<List<String>> getRows(ResultSet result, int ColumnCount) throws SQLException, IOException {
         List<String[]> rows = new ArrayList<>();
