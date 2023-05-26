@@ -52,7 +52,7 @@ public class Controller {
         String pass = credential.getPassword();
         HttpSession session = request.getSession();
         Object username = session.getAttribute("username");
-        String nameTables = usecase.getAllNameTables(adr, user, pass, username.toString());
+        String nameTables = usecase.getGetAllNameTables(adr, user, pass, username.toString());
         model.addAttribute("nameTables", nameTables);
         return new ModelAndView("Table");
     }
@@ -68,7 +68,7 @@ public class Controller {
         }
         HttpSession session = request.getSession();
         Object usernameSession = session.getAttribute("username");
-        StringBuilder showHist = usecase.showHistory(usernameSession.toString());
+        StringBuilder showHist = usecase.getShowHistory(usernameSession.toString());
         model.addAttribute("showHist", showHist);
         return new ModelAndView("history");
     }
@@ -141,7 +141,7 @@ public class Controller {
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
-        usecase.registration(username, password);
+        usecase.getRegistration(username, password);
         return new ModelAndView("redirect:/api/home?username=" + username + "&password=" + password);
     }
 
@@ -165,7 +165,7 @@ public class Controller {
             return new ModelAndView("redirect:/api/login");
         }
 
-        if (usecase.login(username, password)) {
+        if (usecase.getLogin(username, password)) {
             return new ModelAndView("redirect:/api/home");
         }
 
@@ -246,9 +246,9 @@ public class Controller {
         String pass = credential.getPassword();
         Object userrr = session.getAttribute("username");
 
-        usecase.saveQuery(query, userrr.toString());
+        usecase.getSaveQuery(query, userrr.toString());
 
-        RowsAndCols rowsAndCols = usecase.query(query, adr, user, pass, userrr.toString());
+        RowsAndCols rowsAndCols = usecase.getQuery(query, adr, user, pass, userrr.toString());
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");

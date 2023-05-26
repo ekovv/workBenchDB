@@ -29,7 +29,7 @@ public class UseCase {
     }
 
 
-    public RowsAndCols query(String query, String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
+    private RowsAndCols query(String query, String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
         Connection conn = dao.setConnIfNullAndReturn(adr, user, pass, username);
         Statement statement = conn.createStatement();
         List<List<String>> rows = new ArrayList<List<String>>();
@@ -50,7 +50,7 @@ public class UseCase {
         return new RowsAndCols(rows, cols);
     }
 
-    public String getAllNameTables(String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
+    private String getAllNameTables(String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
         Connection conn = dao.setConnIfNullAndReturn(adr, user, pass, username);
         Statement a1 = conn.createStatement();
         ResultSet rs = null;
@@ -73,21 +73,44 @@ public class UseCase {
     }
 
 
-    public boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return dao.login(username, password);
     }
 
-    public void saveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private void saveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         dao.saveQuery(query, username);
     }
 
-    public StringBuilder showHistory(String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private StringBuilder showHistory(String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         return dao.showHistory(username);
     }
 
-    public void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         dao.registration(username, password);
     }
 
 
+    public RowsAndCols getQuery(String query, String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
+        return query(query, adr, user, pass, username);
+    }
+
+    public String getGetAllNameTables(String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return getAllNameTables(adr, user, pass, username);
+    }
+
+    public boolean getLogin(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return login(username, password);
+    }
+
+    public void getSaveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        saveQuery(query, username);
+    }
+
+    public StringBuilder getShowHistory(String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return showHistory(username);
+    }
+
+    public void getRegistration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        registration(username, password);
+    }
 }

@@ -75,6 +75,7 @@ public class DAOFunc {
     }
 
 
+
     public Connection setConnIfNullAndReturn(String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (connections == null) {
             connections = new HashMap<>();
