@@ -2,6 +2,7 @@ package com.ekov.workBenchDB.controller;
 
 import com.ekov.workBenchDB.dao.RowsAndCols;
 import com.ekov.workBenchDB.dao.DAOFunc;
+import com.ekov.workBenchDB.usecase.UseCase;
 import com.fasterxml.uuid.Generators;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -9,13 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.ui.Model;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import java.io.IOException;
@@ -33,8 +30,14 @@ public class Controller {
     private Map<String, Credential> db;
 
 
-    @Autowired
     private DAOFunc logic;
+
+    private UseCase usecase;
+
+    public Controller(UseCase usecase, DAOFunc logic) {
+        this.usecase = usecase;
+        this.logic = logic;
+    }
 
     @GetMapping("/Table")
     public ModelAndView showHomePage(Model model, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
@@ -47,7 +50,9 @@ public class Controller {
         String adr = credential.getAdr();
         String user = credential.getUsername();
         String pass = credential.getPassword();
-        String nameTables = logic.getAllNameTables(adr, user, pass);
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("username");
+        String nameTables = usecase.getAllNameTables(adr, user, pass, username.toString());
         model.addAttribute("nameTables", nameTables);
         return new ModelAndView("Table");
     }
@@ -61,7 +66,9 @@ public class Controller {
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
-        StringBuilder showHist = logic.showHistory();
+        HttpSession session = request.getSession();
+        Object usernameSession = session.getAttribute("username");
+        StringBuilder showHist = usecase.showHistory(usernameSession.toString());
         model.addAttribute("showHist", showHist);
         return new ModelAndView("history");
     }
@@ -132,10 +139,9 @@ public class Controller {
     public ModelAndView registrationPost(String username, String password, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         String uuid = getUUID(request);
         if (uuid == null) {
-            db.clear();
             return new ModelAndView("redirect:/api/login");
         }
-        DAOFunc.registration(username, password);
+        usecase.registration(username, password);
         return new ModelAndView("redirect:/api/home?username=" + username + "&password=" + password);
     }
 
@@ -148,21 +154,21 @@ public class Controller {
             return null;
         }
 
-
         return uuid.toString();
     }
     @PostMapping("/login")
     public ModelAndView loginPost(String username, String password, HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         HttpSession session = request.getSession();
         session.setAttribute("username", username);
-//        db = null;
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
-        if (logic.login(username, password)) {
+
+        if (usecase.login(username, password)) {
             return new ModelAndView("redirect:/api/home");
         }
+
         return new ModelAndView("redirect:/api/login");
     }
 
@@ -195,7 +201,7 @@ public class Controller {
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
-        db.clear();
+
         return new ModelAndView("logout");
     }
 
@@ -213,17 +219,20 @@ public class Controller {
 
 
     @PostMapping("/allTables")
-    public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
+    public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
         }
+        HttpSession session = request.getSession();
+
         String content = null;
         if (file != null) {
             InputStream inputStream = file.getInputStream();
             byte[] bdata = FileCopyUtils.copyToByteArray(inputStream);
             content = new String(bdata, StandardCharsets.UTF_8);
         }
+
         if (file == null && (query.contains("INSERT") || query.contains("DELETE"))) {
             return new ModelAndView("redirect:/api/home");
         }
@@ -235,10 +244,11 @@ public class Controller {
         String adr = credential.getAdr();
         String user = credential.getUsername();
         String pass = credential.getPassword();
-        HttpSession session = request.getSession();
-        String userrr = session.getAttribute("username").toString();
-        logic.saveQuery(query, userrr);
-        RowsAndCols rowsAndCols = logic.query(query, adr, user, pass);
+        Object userrr = session.getAttribute("username");
+
+        usecase.saveQuery(query, userrr.toString());
+
+        RowsAndCols rowsAndCols = usecase.query(query, adr, user, pass, userrr.toString());
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");

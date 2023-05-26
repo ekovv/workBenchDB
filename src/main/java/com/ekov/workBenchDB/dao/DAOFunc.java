@@ -27,29 +27,29 @@ public class DAOFunc {
 
     //сделать кнопку для смены базы
 
-    public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
-        Connection conn = setConnIfNullAndReturn(adr, user, pass);
-        Statement a1 = conn.createStatement();
-        ResultSet rs = null;
-        if (adr.contains("mysql")) {
-            rs = a1.executeQuery("show tables");
-        }
-        if (adr.contains("postgresql")) {
-            rs = a1.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
-        }
-        if (adr.contains("sqlite")) {
-            rs = a1.executeQuery("SELECT NAME FROM sqlite_master WHERE type = 'table'");
-        }
-        StringBuilder myTables = new StringBuilder();
-        while(rs.next()) {
-            myTables.append(rs.getString(1)).append("\n");
-        }
-        StringBuilder res = new StringBuilder(myTables);
-        String resStr = res.toString();
-        return resStr;
-    }
+//    public String getAllNameTables(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {  //вывод названий таблиц
+//        Connection conn = setConnIfNullAndReturn(adr, user, pass);
+//        Statement a1 = conn.createStatement();
+//        ResultSet rs = null;
+//        if (adr.contains("mysql")) {
+//            rs = a1.executeQuery("show tables");
+//        }
+//        if (adr.contains("postgresql")) {
+//            rs = a1.executeQuery("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';");
+//        }
+//        if (adr.contains("sqlite")) {
+//            rs = a1.executeQuery("SELECT NAME FROM sqlite_master WHERE type = 'table'");
+//        }
+//        StringBuilder myTables = new StringBuilder();
+//        while(rs.next()) {
+//            myTables.append(rs.getString(1)).append("\n");
+//        }
+//        StringBuilder res = new StringBuilder(myTables);
+//        String resStr = res.toString();
+//        return resStr;
+//    }
 
-    public static void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         PreparedStatement statement = conn.prepareStatement("INSERT my_db.polz(username, password) VALUES (?,?)");
         statement.setString(1, username);
@@ -75,12 +75,11 @@ public class DAOFunc {
     }
 
 
-    public Connection setConnIfNullAndReturn(String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Connection setConnIfNullAndReturn(String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         if (connections == null) {
             connections = new HashMap<>();
         }
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("username");
+
         connections.put(username.toString(), DriverManager.getConnection(adr, user, pass));
 //        if (adr.contains("postgres")) {
 //                Class.forName("org.postgresql.Driver");
@@ -103,7 +102,7 @@ public class DAOFunc {
     }
 
     public void saveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        Connection conn = setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+        Connection conn = setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser", username);
         Date date = new Date();
         PreparedStatement statement = conn.prepareStatement("INSERT my_db.history(query, username, time) VALUES (?,?,?)");
         statement.setString(2, username);
@@ -113,8 +112,8 @@ public class DAOFunc {
 
     }
 
-    public StringBuilder showHistory() throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        Connection conn =  setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
+    public StringBuilder showHistory(String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        Connection conn =  setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser", username);
         PreparedStatement statement = conn.prepareStatement("SELECT query, time FROM my_db.history where username = ?");
         HttpSession session = request.getSession();
         String userrr = session.getAttribute("username").toString();
@@ -129,26 +128,26 @@ public class DAOFunc {
         return result;
     }
 
-    public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
-        Connection conn = setConnIfNullAndReturn(adr, user, pass);
-        Statement statement = conn.createStatement();
-        List<List<String>> rows = new ArrayList<List<String>>();
-        List<String> cols = new ArrayList<String>();
-        if (query.contains("INSERT") || query.contains("DELETE")) {
-            statement.executeUpdate(query);
-        }
-        else {
-            ResultSet result = statement.executeQuery(query);
+//    public RowsAndCols query(String query, String adr, String user, String pass) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException { //вывод таблицы(строчки)
+//        Connection conn = setConnIfNullAndReturn(adr, user, pass);
+//        Statement statement = conn.createStatement();
+//        List<List<String>> rows = new ArrayList<List<String>>();
+//        List<String> cols = new ArrayList<String>();
+//        if (query.contains("INSERT") || query.contains("DELETE")) {
+//            statement.executeUpdate(query);
+//        }
+//        else {
+//            ResultSet result = statement.executeQuery(query);
+//
+//            ResultSetMetaData rsmd = result.getMetaData();
+//            int columnCount = rsmd.getColumnCount();
+//            rows = getRows(result, columnCount);
+//            cols = getCols(rsmd, columnCount);
+//        }
+//        return new RowsAndCols(rows, cols);
+//    }
 
-            ResultSetMetaData rsmd = result.getMetaData();
-            int columnCount = rsmd.getColumnCount();
-            rows = getRows(result, columnCount);
-            cols = getCols(rsmd, columnCount);
-        }
-        return new RowsAndCols(rows, cols);
-    }
-
-    private List<List<String>> getRows(ResultSet result, int ColumnCount) throws SQLException, IOException {
+    public List<List<String>> getRows(ResultSet result, int ColumnCount) throws SQLException, IOException {
         List<String[]> rows = new ArrayList<>();
         while (result.next()) {
             String[] row = new String[ColumnCount];
@@ -168,7 +167,7 @@ public class DAOFunc {
         return valueNames;
     }
 
-    private List<String> getCols(ResultSetMetaData rsmd, int ColumnCount) throws SQLException, IOException { //вывод колоноки(столбца)
+    public List<String> getCols(ResultSetMetaData rsmd, int ColumnCount) throws SQLException, IOException { //вывод колоноки(столбца)
         List<String> columnNames = new ArrayList<String>();
         for (int i = 1; i < ColumnCount + 1; i++) {
             columnNames.add(rsmd.getColumnName(i));
