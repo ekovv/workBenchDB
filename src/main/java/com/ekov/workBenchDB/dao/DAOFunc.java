@@ -1,8 +1,6 @@
 package com.ekov.workBenchDB.dao;
 
 import org.springframework.stereotype.Repository;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -14,7 +12,8 @@ public class DAOFunc {
     private static Map<String, Connection> connections;
 
 
-    public void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    //registration
+    public void registration(String username, String password) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         PreparedStatement statement = conn.prepareStatement("INSERT my_db.polz(username, password) VALUES (?,?)");
         statement.setString(1, username);
@@ -22,6 +21,7 @@ public class DAOFunc {
         statement.executeUpdate();
     }
 
+    //login
     public boolean login(String username, String password) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         PreparedStatement statement = conn.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
@@ -41,6 +41,7 @@ public class DAOFunc {
 
 
 
+    //set connection to db
     public Connection setConnIfNullAndReturn(String adr, String user, String pass, String username) throws SQLException {
         if (connections == null) {
             connections = new HashMap<>();
@@ -55,7 +56,8 @@ public class DAOFunc {
         return connections.get(username.toString());
     }
 
-    public void saveQuery(String query, String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    //save query in db
+    public void saveQuery(String query, String username) throws SQLException {
         Connection conn = setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser", username);
         Date date = new Date();
         PreparedStatement statement = conn.prepareStatement("INSERT my_db.history(query, username, time) VALUES (?,?,?)");
@@ -66,7 +68,8 @@ public class DAOFunc {
 
     }
 
-    public StringBuilder showHistory(String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    //show your query history
+    public StringBuilder showHistory(String username) throws SQLException {
         Connection conn =  setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser", username);
         PreparedStatement statement = conn.prepareStatement("SELECT query, time FROM my_db.history where username = ?");
         statement.setString(1, username);
@@ -80,7 +83,7 @@ public class DAOFunc {
         return result;
     }
 
-
+    //getting table rows
     public List<List<String>> getRows(ResultSet result, int ColumnCount) throws SQLException {
         List<String[]> rows = new ArrayList<>();
         while (result.next()) {

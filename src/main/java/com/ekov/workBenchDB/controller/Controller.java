@@ -1,10 +1,8 @@
 package com.ekov.workBenchDB.controller;
 
 import com.ekov.workBenchDB.dao.RowsAndCols;
-import com.ekov.workBenchDB.dao.DAOFunc;
 import com.ekov.workBenchDB.usecase.UseCase;
 import com.fasterxml.uuid.Generators;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,18 +25,15 @@ public class Controller {
 
     private Map<String, Credential> db;
 
-    private DAOFunc logic;
-
     private UseCase usecase;
 
-    public Controller(UseCase usecase, DAOFunc logic) {
+    public Controller(UseCase usecase) {
         this.usecase = usecase;
-        this.logic = logic;
     }
 
 
     @GetMapping("/Table")
-    public ModelAndView showHomePage(Model model, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHomePage(Model model, HttpServletRequest request) throws SQLException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
@@ -59,7 +54,7 @@ public class Controller {
 
 
     @GetMapping("/history")
-    public ModelAndView showHistoryPage(Model model, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView showHistoryPage(Model model, HttpServletRequest request) throws SQLException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
@@ -155,7 +150,7 @@ public class Controller {
         return uuid.toString();
     }
     @PostMapping("/login")
-    public ModelAndView loginPost(String username, String password, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public ModelAndView loginPost(String username, String password, HttpServletRequest request) throws SQLException {
         HttpSession session = request.getSession();
         session.setAttribute("username", username);
         String uuid = getUUID(request);
@@ -211,7 +206,7 @@ public class Controller {
 
 
     @PostMapping("/allTables")
-    public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, ServletException {
+    public ModelAndView allTables(Model model, String query, MultipartFile file, HttpServletRequest request) throws SQLException, IOException {
         String uuid = getUUID(request);
         if (uuid == null) {
             return new ModelAndView("redirect:/api/login");
