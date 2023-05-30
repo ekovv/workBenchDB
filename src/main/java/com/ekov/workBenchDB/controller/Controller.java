@@ -243,11 +243,11 @@ public class Controller {
         String adr = credential.getAdr();
         String user = credential.getUsername();
         String pass = credential.getPassword();
-        Object userrr = session.getAttribute("username");
+        Object userFromSession = session.getAttribute("username");
 
-        usecase.getSaveQuery(query, userrr.toString());
+        usecase.getSaveQuery(query, userFromSession.toString());
 
-        RowsAndCols rowsAndCols = usecase.getQuery(query, adr, user, pass, userrr.toString());
+        RowsAndCols rowsAndCols = usecase.getQuery(query, adr, user, pass, userFromSession.toString());
         model.addAttribute("rows", rowsAndCols.getRows());
         model.addAttribute("column", rowsAndCols.getCols());
         return new ModelAndView("showTable");

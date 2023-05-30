@@ -14,7 +14,7 @@ import java.util.*;
 public class UseCase {
 
 
-    private DAOFunc dao;
+    private final DAOFunc dao;
 
 
     public UseCase(DAOFunc dao) {

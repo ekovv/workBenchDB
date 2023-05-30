@@ -1,5 +1,7 @@
 package com.ekov.workBenchDB.controller;
 
+import java.util.Objects;
+
 public class Credential {
 
     private String username;
@@ -35,5 +37,10 @@ public class Credential {
 
     public void setAdr(String adr) {
         this.adr = adr;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username, password, adr);
     }
 }

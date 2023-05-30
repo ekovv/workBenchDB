@@ -19,9 +19,6 @@ public class DAOFunc {
     private static Map<String, Connection> connections;
 
     @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
     private HttpServletRequest request;
 
 
@@ -80,9 +77,7 @@ public class DAOFunc {
     public StringBuilder showHistory(String username) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Connection conn =  setConnIfNullAndReturn("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser", username);
         PreparedStatement statement = conn.prepareStatement("SELECT query, time FROM my_db.history where username = ?");
-        HttpSession session = request.getSession();
-        String userrr = session.getAttribute("username").toString();
-        statement.setString(1, userrr);
+        statement.setString(1, username);
         ResultSet resultSet = statement.executeQuery();
         StringBuilder result =  new StringBuilder();
 
@@ -120,27 +115,5 @@ public class DAOFunc {
             columnNames.add(rsmd.getColumnName(i));
         }
         return columnNames;
-    }
-
-
-
-    @Override
-    public String toString() {
-        return "EmployeeDAOImpl{" +
-                "entityManager=" + entityManager +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DAOFunc that = (DAOFunc) o;
-        return Objects.equals(entityManager, that.entityManager);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(entityManager);
     }
 }
