@@ -107,4 +107,5 @@ public class UseCase {
     public void getRegistration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         registration(username, password);
     }
+
 }

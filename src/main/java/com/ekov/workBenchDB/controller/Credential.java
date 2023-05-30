@@ -43,4 +43,5 @@ public class Credential {
     public int hashCode() {
         return Objects.hash(username, password, adr);
     }
+
 }
