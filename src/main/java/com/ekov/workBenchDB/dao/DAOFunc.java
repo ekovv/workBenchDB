@@ -1,11 +1,6 @@
 package com.ekov.workBenchDB.dao;
 
-import jakarta.persistence.EntityManager;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
@@ -18,9 +13,6 @@ public class DAOFunc {
 
     private static Map<String, Connection> connections;
 
-    @Autowired
-    private HttpServletRequest request;
-
 
     public void registration(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
@@ -30,7 +22,7 @@ public class DAOFunc {
         statement.executeUpdate();
     }
 
-    public boolean login(String username, String password) throws SQLException, IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public boolean login(String username, String password) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/my_db?serverTimezone=Europe/Moscow&useSSL=false", "root", "bestuser");
         PreparedStatement statement = conn.prepareStatement("SELECT ? FROM my_db.polz where username = ?");
         statement.setString(2, username);
@@ -49,12 +41,12 @@ public class DAOFunc {
 
 
 
-    public Connection setConnIfNullAndReturn(String adr, String user, String pass, String username) throws SQLException, IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Connection setConnIfNullAndReturn(String adr, String user, String pass, String username) throws SQLException {
         if (connections == null) {
             connections = new HashMap<>();
         }
 
-        connections.put(username.toString(), DriverManager.getConnection(adr, user, pass));
+        connections.put(username, DriverManager.getConnection(adr, user, pass));
         System.out.println("------------------------------------------- EMployeeeDAOIMPL::getConnection");
         System.out.println("URL = " + adr);
         System.out.println("username = " +user);
@@ -89,7 +81,7 @@ public class DAOFunc {
     }
 
 
-    public List<List<String>> getRows(ResultSet result, int ColumnCount) throws SQLException, IOException {
+    public List<List<String>> getRows(ResultSet result, int ColumnCount) throws SQLException {
         List<String[]> rows = new ArrayList<>();
         while (result.next()) {
             String[] row = new String[ColumnCount];
@@ -109,7 +101,8 @@ public class DAOFunc {
         return valueNames;
     }
 
-    public List<String> getCols(ResultSetMetaData rsmd, int ColumnCount) throws SQLException, IOException { //вывод колоноки(столбца)
+    //getting table columns
+    public List<String> getCols(ResultSetMetaData rsmd, int ColumnCount) throws SQLException {
         List<String> columnNames = new ArrayList<String>();
         for (int i = 1; i < ColumnCount + 1; i++) {
             columnNames.add(rsmd.getColumnName(i));

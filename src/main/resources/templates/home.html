@@ -17,7 +17,7 @@
 
 
 
-<div style="background: linear-gradient(90deg, #faf0cd, #fab397);; width: 100%">
+<div style="background: linear-gradient(90deg, #faf0cd, #fab397);; width: 100%; min-height: 100vh">
     <div th:if="${!isStored}">
         <form action="/api/home" method="post">
             <input id="adr" name="adr" placeholder="adr">
@@ -32,13 +32,14 @@
     <div th:if="${isStored}">
     <form action="/api/allTables" method="post">
 
+
             <a style="text-decoration: none" href="/api/Table">
                 <button type="button" style="margin-right: auto;margin-left: auto;font-size: 20px;display: block; border-radius: 50px; color: white" class="btn btn-outline-light">SHOW TABLES</button>
             </a>
 
 
 
-            <input style="padding-bottom: 200px; width: 100%; display: flex; text-align: justify; margin-top: 200px" type="text" name="query" placeholder="Please write your sql request">
+            <input style="padding-bottom: 200px; width: 100%; display: flex; text-align: justify; margin-top: 800px" type="text" name="query" placeholder="Please write your sql request">
             <button type="submit" class="btn btn-primary">Execute</button>
 
     </form>
@@ -48,12 +49,12 @@
                 <button type="submit"  class="btn btn-primary">Submit</button>
             </form>
         </div>
+        <form action="/api/logout" method="post">
+            <button style="display:flex; float: right; margin-bottom: auto; margin-left: auto; margin-right: 0   " type="submit" class="btn btn-info">Log out</button>
+        </form>
     </div>
     <form action="/api/history" method="get">
         <button style="display:flex; float: right; margin-bottom: auto; margin-left: auto; margin-right: 0   " type="submit" class="btn btn-info">History</button>
-    </form>
-    <form action="/api/logout" method="post">
-        <button style="display:flex; float: right; margin-bottom: auto; margin-left: auto; margin-right: 0   " type="submit" class="btn btn-info">Log out</button>
     </form>
 </div>
 
